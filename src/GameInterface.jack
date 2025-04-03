@@ -1,0 +1,22 @@
+// GameInterface.jack
+class GameInterface {
+    static int NEXT_PIECE_X, NEXT_PIECE_Y;
+    
+    function void init() {
+        let NEXT_PIECE_X = 12;  // Позиция для отображения следующей фигуры
+        let NEXT_PIECE_Y = 3;
+        return;
+    }
+    
+    function void drawCell(int x, int y) {
+        // Рисуем клетку с отступом 1 пиксель от границ
+        do Screen.drawRectangle(x*16+1, y*16+1, x*16+14, y*16+14);
+        return;
+    }
+    
+    function void setColor(int piece) {
+        // Установка цвета в зависимости от типа фигуры
+        do Screen.setColor(piece);
+        return;
+    }
+}
