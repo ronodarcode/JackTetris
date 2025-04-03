@@ -1,0 +1,148 @@
+// Tetromino.jack
+class Tetromino {
+    field int x, y;
+    field int rotation;
+    field int color;
+    field Array shape;
+    field Array shapes;
+    
+    constructor Tetromino new() {
+        let x = 0;
+        let y = 0;
+        let rotation = 0;
+        let color = 0;
+        let shape = Array.new(8);
+        let shapes = Array.new(112); // 7 shapes * 4 rotations * 4 blocks * 2 coords
+        
+        // Initialize all possible shapes and rotations
+        do initShapes();
+        return this;
+    }
+    
+    method void dispose() {
+        do shape.dispose();
+        do shapes.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+    
+    method void initShapes() {
+        // I-shape
+        do setShapeData(0, 0, -1,0, 0,0, 1,0, 2,0);
+        do setShapeData(0, 1, 0,-1, 0,0, 0,1, 0,2);
+        
+        // J-shape
+        do setShapeData(1, 0, -1,-1, -1,0, 0,0, 1,0);
+        do setShapeData(1, 1, 0,-1, 0,0, 0,1, -1,1);
+        do setShapeData(1, 2, -1,0, 0,0, 1,0, 1,1);
+        do setShapeData(1, 3, 0,-1, 0,0, 0,1, 1,-1);
+        
+        // L-shape
+        do setShapeData(2, 0, -1,0, 0,0, 1,0, 1,-1);
+        do setShapeData(2, 1, 0,-1, 0,0, 0,1, -1,-1);
+        do setShapeData(2, 2, -1,0, 0,0, 1,0, -1,1);
+        do setShapeData(2, 3, 0,-1, 0,0, 0,1, 1,1);
+        
+        // O-shape (only one rotation)
+        do setShapeData(3, 0, 0,0, 1,0, 0,1, 1,1);
+        
+        // S-shape
+        do setShapeData(4, 0, -1,0, 0,0, 0,1, 1,1);
+        do setShapeData(4, 1, 0,-1, 0,0, -1,0, -1,1);
+        
+        // T-shape
+        do setShapeData(5, 0, -1,0, 0,0, 1,0, 0,1);
+        do setShapeData(5, 1, 0,-1, 0,0, 0,1, -1,0);
+        do setShapeData(5, 2, -1,0, 0,0, 1,0, 0,-1);
+        do setShapeData(5, 3, 0,-1, 0,0, 0,1, 1,0);
+        
+        // Z-shape
+        do setShapeData(6, 0, -1,1, 0,1, 0,0, 1,0);
+        do setShapeData(6, 1, -1,-1, -1,0, 0,0, 0,1);
+        
+        return;
+    }
+    
+    method void setShapeData(int shapeType, int rotation, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3) {
+        var int baseIndex;
+        let baseIndex = ((shapeType * 16) + (rotation * 4)) * 2;
+        
+        let shapes[baseIndex] = x0;
+        let shapes[baseIndex + 1] = y0;
+        let shapes[baseIndex + 2] = x1;
+        let shapes[baseIndex + 3] = y1;
+        let shapes[baseIndex + 4] = x2;
+        let shapes[baseIndex + 5] = y2;
+        let shapes[baseIndex + 6] = x3;
+        let shapes[baseIndex + 7] = y3;
+        return;
+    }
+    
+    method void randomShape() {
+        var int type;
+        let type = Math.abs(Math.random()) * 7;
+        do setShape(type);
+        return;
+    }
+    
+    method void setShape(int type) {
+        var int i, baseIndex;
+        
+        let color = type + 1;
+        let baseIndex = (type * 16) * 2; // 4 rotations * 4 blocks * 2 coords
+        
+        let i = 0;
+        while (i < 8) {
+            let shape[i] = shapes[baseIndex + i];
+            let i = i + 1;
+        }
+        
+        let rotation = 0;
+        return;
+    }
+    
+    method void copyFrom(Tetromino other) {
+        var int i;
+        
+        let x = other.getX();
+        let y = other.getY();
+        let rotation = other.getRotation();
+        let color = other.getColor();
+        
+        let i = 0;
+        while (i < 8) {
+            let shape[i] = other.getShape()[i];
+            let i = i + 1;
+        }
+        return;
+    }
+    
+    method int getX() { return x; }
+    method int getY() { return y; }
+    method int getRotation() { return rotation; }
+    method int getColor() { return color; }
+    method Array getShape() { return shape; }
+    
+    method void setX(int newX) { let x = newX; return; }
+    method void setY(int newY) { let y = newY; return; }
+    method void setRotation(int newRotation) { 
+        var int type, baseIndex, i;
+        
+        // For shapes with less than 4 rotations, wrap around
+        let type = color - 1;
+        if (type = 0 | type = 3 | type = 4 | type = 6) { // I, O, S, Z have 2 rotations
+            let rotation = newRotation & 1;
+        } else {
+            let rotation = newRotation & 3;
+        }
+        
+        // Update shape data for current rotation
+        let baseIndex = ((type * 16) + (rotation * 4)) * 2;
+        let i = 0;
+        while (i < 8) {
+            let shape[i] = shapes[baseIndex + i];
+            let i = i + 1;
+        }
+        return; 
+    }
+}

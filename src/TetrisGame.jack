@@ -1,0 +1,279 @@
+// TetrisGame.jack
+
+class TetrisGame {
+    field int score;
+    field int level;
+    field int lines;
+    field int gameOver;
+    field Array board;
+    field Tetromino currentPiece;
+    field Tetromino nextPiece;
+    
+    constructor TetrisGame new() {
+        let score = 0;
+        let level = 1;
+        let lines = 0;
+        let gameOver = 0;
+        let board = Array.new(200); // 10x20 grid
+        do clearBoard();
+        let currentPiece = Tetromino.new();
+        let nextPiece = Tetromino.new();
+        do nextPiece.randomShape();
+        return this;
+    }
+    
+    method void dispose() {
+        do board.dispose();
+        do currentPiece.dispose();
+        do nextPiece.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+    
+    method void clearBoard() {
+        var int i;
+        let i = 0;
+        while (i < 200) {
+            let board[i] = 0;
+            let i = i + 1;
+        }
+        return;
+    }
+    
+    method void run() {
+        var int key;
+        var int time;
+        
+        do Screen.setColor(true);
+        do Screen.clearScreen();
+        do drawBoard();
+        do spawnNewPiece();
+        
+        while (~gameOver) {
+            let key = Keyboard.keyPressed();
+            
+            if (key = 130) { // left
+                do moveIfPossible(currentPiece, currentPiece.getX() - 1, currentPiece.getY(), currentPiece.getRotation());
+            }
+            if (key = 132) { // right
+                do moveIfPossible(currentPiece, currentPiece.getX() + 1, currentPiece.getY(), currentPiece.getRotation());
+            }
+            if (key = 131) { // up (rotate)
+                do moveIfPossible(currentPiece, currentPiece.getX(), currentPiece.getY(), currentPiece.getRotation() + 1);
+            }
+            if (key = 133) { // down (soft drop)
+                do moveIfPossible(currentPiece, currentPiece.getX(), currentPiece.getY() + 1, currentPiece.getRotation());
+            }
+            
+            let time = Sys.time();
+            while ((Sys.time() - time) < (50 - (level * 2))) {
+                do Sys.wait(1);
+            }
+            
+            if (~moveIfPossible(currentPiece, currentPiece.getX(), currentPiece.getY() + 1, currentPiece.getRotation())) {
+                do lockPiece();
+                do clearLines();
+                do spawnNewPiece();
+            }
+            
+            do drawBoard();
+            do drawCurrentPiece();
+        }
+        
+        do Output.moveCursor(10, 20);
+        do Output.printString("Game Over!");
+        return;
+    }
+    
+    method boolean moveIfPossible(Tetromino piece, int x, int y, int rotation) {
+        var int oldX, oldY, oldRotation;
+        var boolean valid;
+        
+        let oldX = piece.getX();
+        let oldY = piece.getY();
+        let oldRotation = piece.getRotation();
+        
+        do piece.setX(x);
+        do piece.setY(y);
+        do piece.setRotation(rotation);
+        
+        let valid = isValidPosition(piece);
+        
+        if (~valid) {
+            do piece.setX(oldX);
+            do piece.setY(oldY);
+            do piece.setRotation(oldRotation);
+        }
+        
+        return valid;
+    }
+    
+    method boolean isValidPosition(Tetromino piece) {
+        var int i, x, y, shapeIndex;
+        var Array shape;
+        
+        let shape = piece.getShape();
+        let shapeIndex = 0;
+        
+        let i = 0;
+        while (i < 4) {
+            let x = piece.getX() + shape[shapeIndex];
+            let y = piece.getY() + shape[shapeIndex + 1];
+            
+            if (x < 0 | x >= 10 | y >= 20) {
+                return false;
+            }
+            
+            if (y >= 0 & board[(y * 10) + x] != 0) {
+                return false;
+            }
+            
+            let shapeIndex = shapeIndex + 2;
+            let i = i + 1;
+        }
+        
+        return true;
+    }
+    
+    method void lockPiece() {
+        var int i, x, y, shapeIndex;
+        var Array shape;
+        
+        let shape = currentPiece.getShape();
+        let shapeIndex = 0;
+        
+        let i = 0;
+        while (i < 4) {
+            let x = currentPiece.getX() + shape[shapeIndex];
+            let y = currentPiece.getY() + shape[shapeIndex + 1];
+            
+            if (y >= 0) {
+                let board[(y * 10) + x] = currentPiece.getColor();
+            }
+            
+            let shapeIndex = shapeIndex + 2;
+            let i = i + 1;
+        }
+        return;
+    }
+    
+    method void spawnNewPiece() {
+        do currentPiece.copyFrom(nextPiece);
+        do nextPiece.randomShape();
+        
+        let currentPiece.setX(4);
+        let currentPiece.setY(-2);
+        let currentPiece.setRotation(0);
+        
+        if (~isValidPosition(currentPiece)) {
+            let gameOver = 1;
+        }
+        return;
+    }
+    
+    method void clearLines() {
+        var int y, x, full, linesCleared;
+        var int i;
+        
+        let linesCleared = 0;
+        let y = 19;
+        
+        while (y >= 0) {
+            let full = 1;
+            let x = 0;
+            
+            while (x < 10) {
+                if (board[(y * 10) + x] = 0) {
+                    let full = 0;
+                    let x = 10; // break
+                }
+                let x = x + 1;
+            }
+            
+            if (full) {
+                do shiftLinesDown(y);
+                let linesCleared = linesCleared + 1;
+                let y = y + 1; // check same line again
+            }
+            
+            let y = y - 1;
+        }
+        
+        if (linesCleared > 0) {
+            let lines = lines + linesCleared;
+            let score = score + (linesCleared * linesCleared * 100 * level);
+            
+            if (lines >= (level * 10)) {
+                let level = level + 1;
+            }
+        }
+        return;
+    }
+    
+    method void shiftLinesDown(int fromY) {
+        var int y, x;
+        
+        let y = fromY;
+        while (y > 0) {
+            let x = 0;
+            while (x < 10) {
+                let board[(y * 10) + x] = board[((y - 1) * 10) + x];
+                let x = x + 1;
+            }
+            let y = y - 1;
+        }
+        
+        // Clear top line
+        let x = 0;
+        while (x < 10) {
+            let board[x] = 0;
+            let x = x + 1;
+        }
+        return;
+    }
+    
+    method void drawBoard() {
+        var int x, y, cell;
+        
+        let y = 0;
+        while (y < 20) {
+            let x = 0;
+            while (x < 10) {
+                let cell = board[(y * 10) + x];
+                if (cell != 0) {
+                    do Screen.setColor(true);
+                    do Screen.drawRectangle(x * 16, y * 16, 15, 15);
+                } else {
+                    do Screen.setColor(false);
+                    do Screen.drawRectangle(x * 16, y * 16, 15, 15);
+                }
+                let x = x + 1;
+            }
+            let y = y + 1;
+        }
+        return;
+    }
+    
+    method void drawCurrentPiece() {
+        var int i, x, y, shapeIndex;
+        var Array shape;
+        
+        let shape = currentPiece.getShape();
+        let shapeIndex = 0;
+        
+        let i = 0;
+        while (i < 4) {
+            let x = currentPiece.getX() + shape[shapeIndex];
+            let y = currentPiece.getY() + shape[shapeIndex + 1];
+            
+            if (y >= 0) {
+                do Screen.setColor(true);
+                do Screen.drawRectangle(x * 16, y * 16, 15, 15);
+            }
+            
+            let shapeIndex = shapeIndex + 2;
+            let i = i + 1;
+        }
+        return;
+    }
+}
