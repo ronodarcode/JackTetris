@@ -1,27 +1,30 @@
 // TetrisGame.jack
 
 class TetrisGame {
-    field int score;
-    field int level;
-    field int lines;
-    field int gameOver;
-    field Array board;
-    field Tetromino currentPiece;
-    field Tetromino nextPiece;
+    // Поля класса
+    field int score;        // текущий счет
+    field int level;        // текущий уровень
+    field int lines;        // количество завершенных линий
+    field int gameOver;     // флаг окончания игры
+    field Array board;      // игровое поле 10x20
+    field Tetromino currentPiece;  // текущая фигура
+    field Tetromino nextPiece;     // следующая фигура
     
+    // Конструктор класса
     constructor TetrisGame new() {
         let score = 0;
         let level = 1;
         let lines = 0;
         let gameOver = 0;
-        let board = Array.new(200); // 10x20 grid
-        do clearBoard();
-        let currentPiece = Tetromino.new();
-        let nextPiece = Tetromino.new();
-        do nextPiece.randomShape();
+        let board = Array.new(200);  // создаем массив для поля 10x20
+        do clearBoard();             // очищаем игровое поле
+        let currentPiece = Tetromino.new();  // создаем текущую фигуру
+        let nextPiece = Tetromino.new();     // создаем следующую фигуру
+        do nextPiece.randomShape();          // генерируем случайную форму
         return this;
     }
-    
+
+    // Метод освобождения ресурсов
     method void dispose() {
         do board.dispose();
         do currentPiece.dispose();
@@ -29,7 +32,8 @@ class TetrisGame {
         do Memory.deAlloc(this);
         return;
     }
-    
+
+    // Метод очистки игрового поля
     method void clearBoard() {
         var int i;
         let i = 0;
@@ -39,7 +43,8 @@ class TetrisGame {
         }
         return;
     }
-    
+
+    // Основной игровой цикл
     method void run() {
         var int key;
         var int time;
@@ -84,7 +89,8 @@ class TetrisGame {
         do Output.printString("Game Over!");
         return;
     }
-    
+
+    // Проверка возможности перемещения фигуры
     method boolean moveIfPossible(Tetromino piece, int x, int y, int rotation) {
         var int oldX, oldY, oldRotation;
         var boolean valid;
@@ -107,34 +113,38 @@ class TetrisGame {
         
         return valid;
     }
-    
+
+    // Проверяет, может ли фигура занять указанную позицию
     method boolean isValidPosition(Tetromino piece) {
-        var int i, x, y, shapeIndex;
-        var Array shape;
+        var int i, x, y, shapeIndex; // переменные для цикла и координат
+        var Array shape; // массив для хранения формы фигуры
         
-        let shape = piece.getShape();
-        let shapeIndex = 0;
+        let shape = piece.getShape(); // получаем форму текущей фигуры
+        let shapeIndex = 0; // индекс для обхода координат фигуры
         
         let i = 0;
-        while (i < 4) {
-            let x = piece.getX() + shape[shapeIndex];
-            let y = piece.getY() + shape[shapeIndex + 1];
-            
+        while (i < 4) { // проверяем все 4 блока фигуры
+            let x = piece.getX() + shape[shapeIndex]; // вычисляем x-координату блока
+            let y = piece.getY() + shape[shapeIndex + 1]; // вычисляем y-координату блока
+
+            // Проверяем выход за границы поля
             if (x < 0 | x >= 10 | y >= 20) {
                 return false;
             }
-            
+
+            // Проверяем столкновение с другими фигурами
             if (y >= 0 & board[(y * 10) + x] != 0) {
                 return false;
             }
             
-            let shapeIndex = shapeIndex + 2;
+            let shapeIndex = shapeIndex + 2; // переходим к следующим координатам
             let i = i + 1;
         }
         
-        return true;
+        return true; // позиция валидна
     }
-    
+
+    // Фиксирует текущую фигуру на игровом поле
     method void lockPiece() {
         var int i, x, y, shapeIndex;
         var Array shape;
@@ -143,12 +153,12 @@ class TetrisGame {
         let shapeIndex = 0;
         
         let i = 0;
-        while (i < 4) {
+        while (i < 4) { // для каждого блока фигуры
             let x = currentPiece.getX() + shape[shapeIndex];
             let y = currentPiece.getY() + shape[shapeIndex + 1];
             
-            if (y >= 0) {
-                let board[(y * 10) + x] = currentPiece.getColor();
+            if (y >= 0) { // если блок находится на видимой части поля
+                let board[(y * 10) + x] = currentPiece.getColor(); // записываем цвет блока
             }
             
             let shapeIndex = shapeIndex + 2;
@@ -156,121 +166,143 @@ class TetrisGame {
         }
         return;
     }
-    
+
+    // Создает новую фигуру
     method void spawnNewPiece() {
-        do currentPiece.copyFrom(nextPiece);
-        do nextPiece.randomShape();
-        
+        do currentPiece.copyFrom(nextPiece); // текущая фигура становится следующей
+        do nextPiece.randomShape(); // генерируем новую следующую фигуру
+
+        // Устанавливаем начальную позицию новой фигуры
         let currentPiece.setX(4);
         let currentPiece.setY(-2);
         let currentPiece.setRotation(0);
-        
+
+        // Проверяем, не началась ли игра заново с перекрытием
         if (~isValidPosition(currentPiece)) {
-            let gameOver = 1;
+            let gameOver = 1; // если перекрытие - игра окончена
         }
         return;
     }
-    
+
+    // Очищает заполненные линии
     method void clearLines() {
         var int y, x, full, linesCleared;
         var int i;
         
-        let linesCleared = 0;
-        let y = 19;
+        let linesCleared = 0; // счетчик очищенных линий
+        let y = 19; // начинаем с нижней строки
         
-        while (y >= 0) {
-            let full = 1;
+        while (y >= 0) { // проходим все строки снизу вверх
+            let full = 1; // предполагаем, что строка заполнена
             let x = 0;
             
-            while (x < 10) {
-                if (board[(y * 10) + x] = 0) {
-                    let full = 0;
-                    let x = 10; // break
+            while (x < 10) { // проверяем все столбцы в строке
+                if (board[(y * 10) + x] = 0) { // если есть пустой блок
+                    let full = 0; // строка не заполнена
+                    let x = 10; // выходим из цикла
                 }
                 let x = x + 1;
             }
             
-            if (full) {
-                do shiftLinesDown(y);
-                let linesCleared = linesCleared + 1;
-                let y = y + 1; // check same line again
+            if (full) { // если строка заполнена
+                do shiftLinesDown(y); // сдвигаем все вышестоящие строки вниз
+                let linesCleared = linesCleared + 1; // увеличиваем счетчик
+                let y = y + 1; // проверяем ту же строку снова
             }
-            
-            let y = y - 1;
-        }
         
+            let y = y - 1; // переходим к следующей строке
+        }
+
+        // Обновляем счет и уровень
         if (linesCleared > 0) {
             let lines = lines + linesCleared;
             let score = score + (linesCleared * linesCleared * 100 * level);
             
-            if (lines >= (level * 10)) {
+            if (lines >= (level * 10)) { // повышаем уровень
                 let level = level + 1;
             }
         }
         return;
     }
-    
+
+    // Метод сдвигает все строки игрового поля вниз, начиная с указанной строки
     method void shiftLinesDown(int fromY) {
         var int y, x;
-        
+
+        // Инициализируем переменную y начальной позицией
         let y = fromY;
+        // Сдвигаем все строки вниз
         while (y > 0) {
             let x = 0;
+            // Перебираем все ячейки в строке
             while (x < 10) {
+                // Копируем значение из предыдущей строки в текущую
                 let board[(y * 10) + x] = board[((y - 1) * 10) + x];
                 let x = x + 1;
             }
+            // Переходим к предыдущей строке
             let y = y - 1;
         }
-        
-        // Clear top line
+
+        // Очищаем верхнюю строку поля
         let x = 0;
         while (x < 10) {
-            let board[x] = 0;
+            let board[x] = 0; // Устанавливаем все ячейки верхней строки в 0
             let x = x + 1;
         }
         return;
     }
-    
+
+    // Метод для отрисовки всего игрового поля
     method void drawBoard() {
         var int x, y, cell;
         
         let y = 0;
         while (y < 20) {
+            // Перебираем все строки поля
             let x = 0;
+            // Перебираем все столбцы в строке
             while (x < 10) {
+                // Получаем значение текущей ячейки
                 let cell = board[(y * 10) + x];
+                // Отрисовываем заполненную или пустую ячейку
                 if (cell != 0) {
-                    do Screen.setColor(true);
+                    do Screen.setColor(true);  // Устанавливаем цвет для заполненной ячейки
                     do Screen.drawRectangle(x * 16, y * 16, 15, 15);
                 } else {
-                    do Screen.setColor(false);
+                    do Screen.setColor(false);  // Устанавливаем цвет для пустой ячейки
                     do Screen.drawRectangle(x * 16, y * 16, 15, 15);
                 }
                 let x = x + 1;
-            }
+        }
             let y = y + 1;
         }
         return;
     }
-    
+
+    // Метод для отрисовки текущей фигуры
     method void drawCurrentPiece() {
         var int i, x, y, shapeIndex;
         var Array shape;
-        
+
+        // Получаем форму текущей фигуры
         let shape = currentPiece.getShape();
         let shapeIndex = 0;
-        
+
+        // Перебираем все части фигуры (обычно 4 блока)
         let i = 0;
         while (i < 4) {
+            // Рассчитываем позицию каждой части фигуры
             let x = currentPiece.getX() + shape[shapeIndex];
             let y = currentPiece.getY() + shape[shapeIndex + 1];
-            
+
+            // Отрисовываем только видимые части фигуры
             if (y >= 0) {
-                do Screen.setColor(true);
+                do Screen.setColor(true); // Устанавливаем цвет для фигуры
                 do Screen.drawRectangle(x * 16, y * 16, 15, 15);
             }
-            
+
+            // Переходим к следующей части фигуры
             let shapeIndex = shapeIndex + 2;
             let i = i + 1;
         }
