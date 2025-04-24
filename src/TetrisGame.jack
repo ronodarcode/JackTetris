@@ -128,12 +128,12 @@ class TetrisGame {
             let y = piece.getY() + shape[shapeIndex + 1]; // вычисляем y-координату блока
 
             // Проверяем выход за границы поля
-            if (x < 0 | x >= 10 | y >= 20) {
+            if (x < 0 | (x > 10 | x = 10) | (y > 20 | y = 20)) {
                 return false;
             }
 
             // Проверяем столкновение с другими фигурами
-            if (y >= 0 & board[(y * 10) + x] != 0) {
+            if ((y > 0 | y = 0) & (board[(y * 10) + x] < 0 | board[(y * 10) + x] > 0)) { 
                 return false;
             }
             
@@ -157,7 +157,7 @@ class TetrisGame {
             let x = currentPiece.getX() + shape[shapeIndex];
             let y = currentPiece.getY() + shape[shapeIndex + 1];
             
-            if (y >= 0) { // если блок находится на видимой части поля
+            if (y > 0 | y = 0) { // если блок находится на видимой части поля
                 let board[(y * 10) + x] = currentPiece.getColor(); // записываем цвет блока
             }
             
@@ -173,9 +173,12 @@ class TetrisGame {
         do nextPiece.randomShape(); // генерируем новую следующую фигуру
 
         // Устанавливаем начальную позицию новой фигуры
-        let currentPiece.setX(4);
-        let currentPiece.setY(-2);
-        let currentPiece.setRotation(0);
+        do currentPiece.setX(4);
+        let currentPiece = currentPiece;
+        do currentPiece.setX(-2);
+        let currentPiece = currentPiece;
+        do currentPiece.setX(0);
+        let currentPiece = currentPiece;
 
         // Проверяем, не началась ли игра заново с перекрытием
         if (~isValidPosition(currentPiece)) {
@@ -192,7 +195,7 @@ class TetrisGame {
         let linesCleared = 0; // счетчик очищенных линий
         let y = 19; // начинаем с нижней строки
         
-        while (y >= 0) { // проходим все строки снизу вверх
+        while (y > 0 | y = 0) { // проходим все строки снизу вверх
             let full = 1; // предполагаем, что строка заполнена
             let x = 0;
             
@@ -218,7 +221,7 @@ class TetrisGame {
             let lines = lines + linesCleared;
             let score = score + (linesCleared * linesCleared * 100 * level);
             
-            if (lines >= (level * 10)) { // повышаем уровень
+            if (lines > (level * 10) | lines = (level * 10)) { // повышаем уровень 
                 let level = level + 1;
             }
         }
@@ -266,7 +269,7 @@ class TetrisGame {
                 // Получаем значение текущей ячейки
                 let cell = board[(y * 10) + x];
                 // Отрисовываем заполненную или пустую ячейку
-                if (cell != 0) {
+                if (cell < 0 | cell > 0) { 
                     do Screen.setColor(true);  // Устанавливаем цвет для заполненной ячейки
                     do Screen.drawRectangle(x * 16, y * 16, 15, 15);
                 } else {
@@ -297,7 +300,7 @@ class TetrisGame {
             let y = currentPiece.getY() + shape[shapeIndex + 1];
 
             // Отрисовываем только видимые части фигуры
-            if (y >= 0) {
+            if (y > 0 | y = 0) {
                 do Screen.setColor(true); // Устанавливаем цвет для фигуры
                 do Screen.drawRectangle(x * 16, y * 16, 15, 15);
             }
