@@ -1,72 +1,85 @@
 // Tetromino.jack
+// Класс, представляющий тетромино (фигуру тетриса)
 class Tetromino {
-    field int x, y;
-    field int rotation;
-    field int color;
-    field Array shape;
-    field Array shapes;
+    // Поля класса
+    field int x, y;        // Позиция фигуры на игровом поле
+    field int rotation;    // Текущий поворот фигуры
+    field int color;       // Цвет фигуры
+    field Array shape;     // Текущая форма фигуры (координаты блоков)
+    field Array shapes;    // Все возможные формы и повороты
     
+    // Конструктор класса
     constructor Tetromino new() {
+        // Инициализация полей
         let x = 0;
         let y = 0;
         let rotation = 0;
         let color = 0;
-        let shape = Array.new(8);
-        let shapes = Array.new(112); // 7 shapes * 4 rotations * 4 blocks * 2 coords
+        let shape = Array.new(8);    // Массив для 4 блоков * 2 координаты
+        let shapes = Array.new(112);  // 7 фигур * 4 поворота * 4 блока * 2 координаты
         
-        // Initialize all possible shapes and rotations
+        // Инициализация всех возможных форм
         do initShapes();
         return this;
     }
-    
+
+    // Метод освобождения памяти
     method void dispose() {
         do shape.dispose();
         do shapes.dispose();
         do Memory.deAlloc(this);
         return;
     }
-    
+
+    // Метод инициализации всех форм тетромино
     method void initShapes() {
-        // I-shape
+        // I-фигура
         do setShapeData(0, 0, -1,0, 0,0, 1,0, 2,0);
         do setShapeData(0, 1, 0,-1, 0,0, 0,1, 0,2);
         
-        // J-shape
+        // J-фигура
         do setShapeData(1, 0, -1,-1, -1,0, 0,0, 1,0);
         do setShapeData(1, 1, 0,-1, 0,0, 0,1, -1,1);
         do setShapeData(1, 2, -1,0, 0,0, 1,0, 1,1);
         do setShapeData(1, 3, 0,-1, 0,0, 0,1, 1,-1);
         
-        // L-shape
+        // L-фигура
         do setShapeData(2, 0, -1,0, 0,0, 1,0, 1,-1);
         do setShapeData(2, 1, 0,-1, 0,0, 0,1, -1,-1);
         do setShapeData(2, 2, -1,0, 0,0, 1,0, -1,1);
         do setShapeData(2, 3, 0,-1, 0,0, 0,1, 1,1);
         
-        // O-shape (only one rotation)
+        // O-фигура (только один поворот)
         do setShapeData(3, 0, 0,0, 1,0, 0,1, 1,1);
         
-        // S-shape
+        // S-фигура
         do setShapeData(4, 0, -1,0, 0,0, 0,1, 1,1);
         do setShapeData(4, 1, 0,-1, 0,0, -1,0, -1,1);
         
-        // T-shape
+        // T-фигура
         do setShapeData(5, 0, -1,0, 0,0, 1,0, 0,1);
         do setShapeData(5, 1, 0,-1, 0,0, 0,1, -1,0);
         do setShapeData(5, 2, -1,0, 0,0, 1,0, 0,-1);
         do setShapeData(5, 3, 0,-1, 0,0, 0,1, 1,0);
         
-        // Z-shape
+        // Z-фигура
         do setShapeData(6, 0, -1,1, 0,1, 0,0, 1,0);
         do setShapeData(6, 1, -1,-1, -1,0, 0,0, 0,1);
         
         return;
     }
-    
+
+    // Метод установки данных формы
     method void setShapeData(int shapeType, int rotation, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3) {
-        var int baseIndex;
+        var int baseIndex; // Базовый индекс для хранения координат
+
+        // Расчет базового индекса в массиве:
+        // shapeType * 16 (4 поворота * 4 блока * 2 координаты)
+        // + rotation * 4 (4 блока)
+        // * 2 (координаты x и y)
         let baseIndex = ((shapeType * 16) + (rotation * 4)) * 2;
-        
+
+        // Заполнение массива координатами блоков
         let shapes[baseIndex] = x0;
         let shapes[baseIndex + 1] = y0;
         let shapes[baseIndex + 2] = x1;
@@ -77,38 +90,48 @@ class Tetromino {
         let shapes[baseIndex + 7] = y3;
         return;
     }
-    
+
+    // Метод для генерации случайной фигуры
     method void randomShape() {
         var int type;
+        // Генерация случайного числа от 0 до 6 (7 типов фигур)
         let type = Math.abs(Math.random()) * 7;
-        do setShape(type);
+        do setShape(type); // Установка выбранной фигуры
         return;
     }
-    
+
+    // Метод установки конкретной фигуры
     method void setShape(int type) {
-        var int i, baseIndex;
+        var int i, baseIndex; // Счетчик и базовый индекс
         
-        let color = type + 1;
-        let baseIndex = (type * 16) * 2; // 4 rotations * 4 blocks * 2 coords
-        
+        let color = type + 1;  // Установка цвета фигуры (1-7)
+
+        // Расчет базового индекса для выбранной фигуры
+        let baseIndex = (type * 16) * 2; // 4 rotations * 4 blocks * 2 coords // 4 поворота * 4 блока * 2 координаты
+
+        // Копирование координат фигуры в текущий shape
         let i = 0;
         while (i < 8) {
             let shape[i] = shapes[baseIndex + i];
             let i = i + 1;
         }
-        
+
+        // Установка начального поворота
         let rotation = 0;
         return;
     }
-    
+
+    // Метод копирования данных из другой фигуры
     method void copyFrom(Tetromino other) {
         var int i;
-        
+
+        // Копирование позиции, поворота и цвета
         let x = other.getX();
         let y = other.getY();
         let rotation = other.getRotation();
         let color = other.getColor();
-        
+
+        // Копирование формы
         let i = 0;
         while (i < 8) {
             let shape[i] = other.getShape()[i];
@@ -116,27 +139,31 @@ class Tetromino {
         }
         return;
     }
-    
+
+    // Методы получения значений полей
     method int getX() { return x; }
     method int getY() { return y; }
     method int getRotation() { return rotation; }
     method int getColor() { return color; }
     method Array getShape() { return shape; }
-    
+
+    // Методы установки значений полей
     method void setX(int newX) { let x = newX; return; }
     method void setY(int newY) { let y = newY; return; }
+
+    // Метод установки поворота с учетом особенностей фигур
     method void setRotation(int newRotation) { 
         var int type, baseIndex, i;
         
-        // For shapes with less than 4 rotations, wrap around
+        // Обработка фигур с ограниченным количеством поворотов
         let type = color - 1;
-        if (type = 0 | type = 3 | type = 4 | type = 6) { // I, O, S, Z have 2 rotations
-            let rotation = newRotation & 1;
+        if (type = 0 | type = 3 | type = 4 | type = 6) { // I, O, S, Z имеют 2 поворота
+            let rotation = newRotation & 1; // Ограничение до 0 или 1
         } else {
-            let rotation = newRotation & 3;
+            let rotation = newRotation & 3; // Ограничение до 0-3
         }
         
-        // Update shape data for current rotation
+        // Обновление данных формы для текущего поворота
         let baseIndex = ((type * 16) + (rotation * 4)) * 2;
         let i = 0;
         while (i < 8) {
