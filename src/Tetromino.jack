@@ -134,7 +134,7 @@ class Tetromino {
         // Копирование формы
         let i = 0;
         while (i < 8) {
-            let shape[i] = other.getShape()[i];
+            let shape[i] = other.getShape();
             let i = i + 1;
         }
         return;
