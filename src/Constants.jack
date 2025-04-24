@@ -1,23 +1,25 @@
 // Constants.jack
 class Constants {
-    static int BOARD_WIDTH, BOARD_HEIGHT;
-    static int CELL_SIZE;
-    static int COLOR_I, COLOR_O, COLOR_T, COLOR_S, COLOR_Z, COLOR_L, COLOR_J;
+    // Объявление статических переменных
+    static int BOARD_WIDTH, BOARD_HEIGHT; // Размеры игрового поля
+    static int CELL_SIZE; // Размер одной ячейки поля
+    static int COLOR_I, COLOR_O, COLOR_T, COLOR_S, COLOR_Z, COLOR_L, COLOR_J; // Цвета фигур
     
+    // Метод инициализации констант
     function void init() {
-        // Основные параметры игрового поля
-        let BOARD_WIDTH = 10;
-        let BOARD_HEIGHT = 20;
-        let CELL_SIZE = 16;
+        // Параметры игрового поля
+        let BOARD_WIDTH = 10;     // Ширина поля (10 клеток)
+        let BOARD_HEIGHT = 20;    // Высота поля (20 клеток)
+        let CELL_SIZE = 16;       // Размер одной клетки в пикселях
         
         // Цвета для каждого типа фигуры (0-6)
-        let COLOR_I = 0;
-        let COLOR_O = 1;
-        let COLOR_T = 2;
-        let COLOR_S = 3;
-        let COLOR_Z = 4;
-        let COLOR_L = 5;
-        let COLOR_J = 6;
+        let COLOR_I = 0;  // Фигура I (длинная прямая)
+        let COLOR_O = 1;  // Фигура O (квадрат)
+        let COLOR_T = 2;  // Фигура T
+        let COLOR_S = 3;  // Фигура S (зеркальная Z)
+        let COLOR_Z = 4;  // Фигура Z
+        let COLOR_L = 5;  // Фигура L
+        let COLOR_J = 6;  // Фигура J (зеркальная L)
         return;
     }
 }
