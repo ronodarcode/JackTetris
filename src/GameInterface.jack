@@ -1,21 +1,29 @@
 // GameInterface.jack
-class GameInterface {
+class GameInterface { //Отвечает за отображение игрового интерфейса
+    // Координаты для отображения следующей фигуры
     static int NEXT_PIECE_X, NEXT_PIECE_Y;
     
+   // Инициализация координат отображения следующей фигуры
     function void init() {
-        let NEXT_PIECE_X = 12;  // Позиция для отображения следующей фигуры
-        let NEXT_PIECE_Y = 3;
+        let NEXT_PIECE_X = 12;  // Позиция X для отображения следующей фигуры
+        let NEXT_PIECE_Y = 3;   // Позиция Y для отображения следующей фигуры
         return;
     }
     
+    // Функция для отрисовки одной клетки игрового поля
     function void drawCell(int x, int y) {
         // Рисуем клетку с отступом 1 пиксель от границ
+        // Параметры: x1, y1, x2, y2
+        // x1 и y1 - верхний левый угол
+        // x2 и y2 - нижний правый угол
         do Screen.drawRectangle(x*16+1, y*16+1, x*16+14, y*16+14);
         return;
     }
     
+    // Функция для установки цвета фигуры
     function void setColor(int piece) {
-        // Установка цвета в зависимости от типа фигуры
+        // piece - идентификатор цвета фигуры (0-6)
+        // Вызывает метод setColor класса Screen
         do Screen.setColor(piece);
         return;
     }
